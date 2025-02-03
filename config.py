@@ -9,10 +9,10 @@ CLEARANCE = 10
 BLOAT = ROBOT_RADIUS + CLEARANCE
 
 # OBSTACLE 1 RECTANGLE 1 for the left side of the layout
-rect1_l, rect1_w = 1000/10, 250/10
-b_rect1_l = rect1_l + BLOAT  #BLOATed rectangle1 length
-b_rect1_w = rect1_w + 2*BLOAT  # BLOATed rectangle1 width
-b_rect1_x = (500+1000)/10-BLOAT     #x-coordinate of rect corner point
+# rect1_l, rect1_w = 1000/10, 250/10
+# b_rect1_l = rect1_l + BLOAT  #BLOATed rectangle1 length
+# b_rect1_w = rect1_w + 2*BLOAT  # BLOATed rectangle1 width
+# b_rect1_x = (500+1000)/10-BLOAT     #x-coordinate of rect corner point
 
 LEFT_RECTANGLE = {'LENGTH': 1000/10,
                   'WIDTH': 250/10,
@@ -38,18 +38,18 @@ MIDDLE_RECTANGLE = {'LENGTH': LEFT_RECTANGLE['LENGTH'],
                   },
                   }
 
-LEFT_CIRLCE = {'CENTER': {
+LEFT_CIRCLE = {'CENTER': {
     'X': START_X + 3700/10,
     'Y': 800/10},
     'RADIUS': (1200/2)/10,
 'BLOATED_RADIUS': BLOAT + (1200/2)/10
 }
-# OBSTACLE 2: RECTANGLE 2
-rect2_l, rect2_w = 1000/10, 250/10
-b_rect2_l = rect2_l + BLOAT  # BLOATed rectangle 2 length
-b_rect2_w = rect2_w + 2*BLOAT # BLOATed rectangle 2 width
-b_rect2_x = (500 + 2000)/10 - BLOAT #x-coordinate of rect corner point
-b_rect2_y = WINDOW_HEIGHT - b_rect2_l #y-coordinate of rect corner point
-# OBSTACLE3: CIRLCE
-center_x, center_y = (500+3700)/10, 800/10
-circle_r, bltd_circle_r = (1200/2)/10, BLOAT+(1200/2)/10
+# # OBSTACLE 2: RECTANGLE 2
+# rect2_l, rect2_w = 1000/10, 250/10
+# b_rect2_l = rect2_l + BLOAT  # BLOATed rectangle 2 length
+# b_rect2_w = rect2_w + 2*BLOAT # BLOATed rectangle 2 width
+# b_rect2_x = (500 + 2000)/10 - BLOAT #x-coordinate of rect corner point
+# b_rect2_y = WINDOW_HEIGHT - b_rect2_l #y-coordinate of rect corner point
+# # OBSTACLE3: CIRLCE
+# center_x, center_y = (500+3700)/10, 800/10
+# circle_r, bltd_circle_r = (1200/2)/10, BLOAT+(1200/2)/10
