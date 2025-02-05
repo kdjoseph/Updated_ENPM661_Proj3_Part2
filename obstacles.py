@@ -15,7 +15,7 @@ def is_collision(x, y):
         return True
     # Circle Obstacle
     # general equation of circle: (x-center_x)^2 + (y-center_y)^2 = radius^2
-    if (x-config.LEFT_CIRCLE['center']['x'])**2+(y-config.LEFT_CIRCLE['center']['x'])**2<=\
+    if (x-config.LEFT_CIRCLE['center']['x'])**2+(y-config.LEFT_CIRCLE['center']['y'])**2<=\
         config.LEFT_CIRCLE['bloated_radius']**2:
         return True
     # Border region outside all obstacles
