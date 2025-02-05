@@ -5,7 +5,7 @@ def is_collision(x, y):
     # First rectangular obstacles
     if ((config.LEFT_RECTANGLE['bloated']['x'] <= x <=(config.LEFT_RECTANGLE['bloated']['x']+
                                                        config.LEFT_RECTANGLE['bloated']['width']))\
-        and y <= config.LEFT_RECTANGLE['bloated']['length']):
+        and y <= config.LEFT_RECTANGLE['bloated']['height']):
         return True
     
     # 2nd Rectangle
