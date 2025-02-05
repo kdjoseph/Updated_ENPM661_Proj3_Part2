@@ -5,7 +5,7 @@ WHEEL_SEPARATION = (287)/10 # 287 mm converted to cm, distance from a line throu
 WINDOW_WIDTH, WINDOW_HEIGHT = 6000/10, 2000/10 # convert to cm
 START_X, START_Y = 500/10, WINDOW_HEIGHT/2
 GOAL_X, GOAL_Y = WINDOW_WIDTH-250/10, START_Y
-CLEARANCE = 20
+CLEARANCE = 100/10 # 100 mm converted to cm = 10 cm
 BLOAT = ROBOT_RADIUS + CLEARANCE
 
 
@@ -13,28 +13,28 @@ THRESHOLD_X, THRESHOLD_Y, THRESHOLD_THETA = 0.5, 0.5, 30
 
 # OBSTACLE 1 RECTANGLE 1 for the left side of the layout
 # rect1_l, rect1_w = 1000/10, 250/10
-# b_rect1_l = rect1_l + BLOAT  #BLOATed rectangle1 length
+# b_rect1_l = rect1_l + BLOAT  #BLOATed rectangle1 height
 # b_rect1_w = rect1_w + 2*BLOAT  # BLOATed rectangle1 width
 # b_rect1_x = (500+1000)/10-BLOAT     #x-coordinate of rect corner point
 
-LEFT_RECTANGLE = {'length': 1000/10,
+LEFT_RECTANGLE = {'height': 1000/10,
                   'width': 250/10,
                   'x': START_X + 1000/10,
                   'y': 0,
                   'bloated': {
-                      'length': 1000/10 + BLOAT,
+                      'height': 1000/10 + BLOAT,
                       'width': 250/10 + 2*BLOAT,
                       'x': START_X+1000/10 - BLOAT,
                       'y': 0
                   },
                   }
 
-MIDDLE_RECTANGLE = {'length': LEFT_RECTANGLE['length'],
+MIDDLE_RECTANGLE = {'height': LEFT_RECTANGLE['height'],
                   'width': LEFT_RECTANGLE['width'],
                   'x': START_X + 2000/10,
                   'y': WINDOW_HEIGHT/2,
                   'bloated': {
-                      'length': LEFT_RECTANGLE['bloated']['length'],
+                      'height': LEFT_RECTANGLE['bloated']['height'],
                       'width': LEFT_RECTANGLE['bloated']['width'],
                       'x': START_X + 2000/10 - BLOAT,
                       'y': WINDOW_HEIGHT/2 - BLOAT
@@ -77,7 +77,7 @@ BLOATED_BORDERS = {
 }
 # # OBSTACLE 2: RECTANGLE 2
 # rect2_l, rect2_w = 1000/10, 250/10
-# b_rect2_l = rect2_l + BLOAT  # BLOATed rectangle 2 length
+# b_rect2_l = rect2_l + BLOAT  # BLOATed rectangle 2 height
 # b_rect2_w = rect2_w + 2*BLOAT # BLOATed rectangle 2 width
 # b_rect2_x = (500 + 2000)/10 - BLOAT #x-coordinate of rect corner point
 # b_rect2_y = WINDOW_HEIGHT - b_rect2_l #y-coordinate of rect corner point
