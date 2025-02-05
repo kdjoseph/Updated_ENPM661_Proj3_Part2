@@ -1,5 +1,7 @@
 from collections import deque
 from typing import Deque, Tuple, Dict
+from numba import jit, njit
+import numpy as np
 import heapq as hq
 import math
 import time
@@ -127,6 +129,7 @@ def _reconstruct_path(parent_map: dict, step_info_map: dict, current: Tuple) -> 
         step_info.appendleft(step_info_map[current])
     return path, step_info
 
+@njit
 def _normalize_angle(angle):
     """ normalizes all angles to be with respect to 360 degrees"""
     return angle % 360
@@ -139,6 +142,7 @@ def _round_near_point5(number):
     """ rounds number to the nearest 0.5 decimal. If the number is close to 0.5, it rounds it to that, otherwise it rounds it to the closest whole number"""
     return round(number*2)/2
 
+@jit(nopython=True)
 def _move(Xi,Yi,Thetai,cost_to_come,wheel_rpms):
     """ Calculates the velocity, anguar speed, distance covered and new c2c. """
     ang_spd_l, ang_spd_r = wheel_rpms
@@ -146,23 +150,23 @@ def _move(Xi,Yi,Thetai,cost_to_come,wheel_rpms):
     dt = 0.1
     Xn=Xi
     Yn=Yi
-    Thetan = math.radians(Thetai)
-    ang_spd_l = ang_spd_l*2*math.pi/60 # convert rpm to rad/s
-    ang_spd_r = ang_spd_r*2*math.pi/60 # convert rpm to rad/s
+    Thetan = np.radians(Thetai) 
+    ang_spd_l = ang_spd_l*2*np.pi/60 # convert rpm to rad/s
+    ang_spd_r = ang_spd_r*2*np.pi/60 # convert rpm to rad/s
 
-    x_dot = 0.5*config.WHEEL_RADIUS * (ang_spd_l + ang_spd_r) * math.cos(Thetan) 
-    y_dot = 0.5*config.WHEEL_RADIUS * (ang_spd_l + ang_spd_r) * math.sin(Thetan)
+    x_dot = 0.5*config.WHEEL_RADIUS * (ang_spd_l + ang_spd_r) * np.cos(Thetan) 
+    y_dot = 0.5*config.WHEEL_RADIUS * (ang_spd_l + ang_spd_r) * np.sin(Thetan)
     theta_dot = (config.WHEEL_RADIUS/config.WHEEL_SEPARATION) * (ang_spd_r - ang_spd_l)
-    vel = math.sqrt(x_dot**2 + y_dot**2)
+    vel = np.sqrt(x_dot**2 + y_dot**2)
     distance=0
     while t<1:
         t = t + dt
-        Xn += 0.5*config.WHEEL_RADIUS * (ang_spd_l + ang_spd_r) * math.cos(Thetan) * dt
-        Yn += 0.5*config.WHEEL_RADIUS * (ang_spd_l + ang_spd_r) * math.sin(Thetan) * dt
+        Xn += 0.5*config.WHEEL_RADIUS * (ang_spd_l + ang_spd_r) * np.cos(Thetan) * dt
+        Yn += 0.5*config.WHEEL_RADIUS * (ang_spd_l + ang_spd_r) * np.sin(Thetan) * dt
         # Thetan += (r / L) * (ang_spd_r - ang_spd_l) * dt
         Thetan += (config.WHEEL_RADIUS/config.WHEEL_SEPARATION) * (ang_spd_r - ang_spd_l) * dt
-        distance += math.sqrt((0.5*config.WHEEL_RADIUS * (ang_spd_l + ang_spd_r) * math.cos(Thetan) * dt)**2 \
-                      + (0.5*config.WHEEL_RADIUS * (ang_spd_l + ang_spd_r) * math.sin(Thetan) * dt)**2)
+        distance += np.sqrt((0.5*config.WHEEL_RADIUS * (ang_spd_l + ang_spd_r) * np.cos(Thetan) * dt)**2 \
+                      + (0.5*config.WHEEL_RADIUS * (ang_spd_l + ang_spd_r) * np.sin(Thetan) * dt)**2)
     new_c2c = cost_to_come + distance  
-    Thetan = math.degrees(Thetan)
+    Thetan = np.degrees(Thetan)
     return round(Xn), round(Yn), round(_normalize_angle(Thetan)), round(new_c2c,1), round(distance,2), round(vel,4), round(theta_dot,4)
