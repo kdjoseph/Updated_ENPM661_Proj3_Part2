@@ -15,7 +15,7 @@ def start_goal_rpm_inputs(gazebo_coord_sw=0, strt_and_rpm_input_sw=1):
         while start_pt_trigger ==1:
             try:
                 startb_x = float(input('Enter starting point x-cordinate in mm: '))/10
-                startb_y = float(input('Enter starting point y-cordinate in mm: '))/10,
+                startb_y = float(input('Enter starting point y-cordinate in mm: '))/10
                 startb_theta = float(input('Enter starting theta in degrees: '))
                 # worst case start wrt to coord at bottom-left corner: start (6,6), goal (1194, 162) or goal (1194, 338)
             except:
@@ -78,11 +78,10 @@ def main():
     
     # a_star_duration = A_star(1, 1, 0)
     result = pathsearch.find_path(start, goal, wheel_rpm, actions)
-
     print(f"A* Algorithm Execution Time: {result['runtime']} seconds")
 
     # if optimal path is found, create animation
-    if len(result['path']) is not None:
+    if result['message'] == "Path found!":
         animation_strt_time = time.time()
         # animation_run_flag = True
         # Create Pygame window
