@@ -13,7 +13,7 @@ def find_path(start, goal, wheel_rpm, actions, a_star_weight=1):
     gazebo_coord_sw =1 -> convert user input in gazebo coord to pygame. gazebo_coord_sw =0 -> convert from coord on bottom left of layout to pygame coord"""
     
     open_list = []  # to be used for heapq for nodes in the open-list
-    visited_matrix_index_set = set() #set used to store the index of each visited node if they were added to a visted-node-matrix (see proj3 part 1 pdf page 14). replaces the closed-list from proj2
+    visited_matrix_index_set = set() #set used to store the index of each visited node if they were added to a visted-node-matrix 
     parent_node_map = {} # dictionary (key=node, val=parent) for all the nodes visited mapped to their parents to be used for backtracking
     lowest_cost_map ={} # dictionary (key=node, val=c2c) to keep track of the nodes and their cost, used to ensure only lowest cost in open-list
     step_info_map = {} # dictionary (key = node, val= (linear_velocity, angular_velocity, distance_covered) to keep track of the nodes, traveled distance, linear & angular velocities
