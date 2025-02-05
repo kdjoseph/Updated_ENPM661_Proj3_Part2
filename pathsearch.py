@@ -17,7 +17,6 @@ def find_path(start, goal, wheel_rpm, actions, a_star_weight=1):
     parent_node_map = {} # dictionary (key=node, val=parent) for all the nodes visited mapped to their parents to be used for backtracking
     lowest_cost_map ={} # dictionary (key=node, val=c2c) to keep track of the nodes and their cost, used to ensure only lowest cost in open-list
     step_info_map = {} # dictionary (key = node, val= (linear_velocity, angular_velocity, distance_covered) to keep track of the nodes, traveled distance, linear & angular velocities
-    threshold_x, threshold_y, threshold_theta = 0.5, 0.5, 30
 
     start_x, start_y, start_theta = start
     goal_x, goal_y = goal
@@ -51,7 +50,7 @@ def find_path(start, goal, wheel_rpm, actions, a_star_weight=1):
         if lowest_cost_map.get((curnt_x, curnt_y, curnt_theta)) is not None and curnt_c2c > lowest_cost_map.get((curnt_x, curnt_y, curnt_theta)):
             continue
         # rounds the x, y, theta to the nearest 0.5, then determine what its index would be if a matrix was used per page 14 of the project pdf, add it to the visited node set. 
-        visited_matrix_index_set.add((_round_near_point5(curnt_x)/threshold_x, _round_near_point5(curnt_y)/threshold_y, curnt_theta/threshold_theta))
+        visited_matrix_index_set.add((_round_near_point5(curnt_x)/config.THRESHOLD_X, _round_near_point5(curnt_y)/config.THRESHOLD_Y, curnt_theta/config.THRESHOLD_THETA))
 
         # Check if we've reached the goal,if yes, backtrack to find path. If node is within 1.5 units of goal, then it's close enough. 
         if ((curnt_x - goal_x)**2 + (curnt_y - goal_y)**2) <= 1.5**2: #and (goal_theta-15 <= curnt_theta <= goal_theta+15):
@@ -83,7 +82,7 @@ def find_path(start, goal, wheel_rpm, actions, a_star_weight=1):
             if (nx,ny) in obstacles.OBSTACLE_POINTS:
                 continue
             # Checks that the new node has not already been visited
-            if (_round_near_point5(nx)/threshold_x, _round_near_point5(ny)/threshold_y, n_theta/threshold_theta) not in visited_matrix_index_set:
+            if (_round_near_point5(nx)/config.THRESHOLD_X, _round_near_point5(ny)/config.THRESHOLD_Y, n_theta/config.THRESHOLD_THETA) not in visited_matrix_index_set:
                 # only add node to open list and other dictionaries, if the new node is not in the lowest_cost_dictionary or if the new node's c2c is lower than the one in the lowest_cost dictionary. 
                 if (nx, ny, n_theta) not in lowest_cost_map or n_c2c < lowest_cost_map[(nx, ny, n_theta)]:
                     n_c2g = _euclidean_distance(nx, ny, goal_x, goal_y)
