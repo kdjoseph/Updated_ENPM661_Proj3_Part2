@@ -48,58 +48,43 @@ def draw_environment(window):
                     config.LEFT_CIRCLE['center']['y']),
                     config.LEFT_CIRCLE['radius'])
     pygame.display.update()
-
-def draw_action_curves_batch(surface, nodes, actions, color):
-    """Draws action curves for multiple nodes in a batch for better performance"""
-    curves_surface = pygame.Surface((config.WINDOW_WIDTH, config.WINDOW_HEIGHT), pygame.SRCALPHA)
     
-    for node in nodes:
-        Xi, Yi, Thetai = node
-        for action in actions:
-            UL, UR = action
-            points = calculate_curve_points(Xi, Yi, Thetai, UL, UR)
-            if points:  # Only draw if points are valid (no collision)
-                pygame.draw.lines(curves_surface, color, False, points, 1)
-    
-    surface.blit(curves_surface, (0, 0))
-    return True
+animation_visited_matrix_idx_set = set() # set to keep track of visted nodes during animation
 
-def calculate_curve_points(Xi, Yi, Thetai, UL, UR):
-    """Calculates points for action curve without drawing - returns None if collision detected"""
+def draw_action_curve(surface, Xi, Yi, Thetai, UL, UR, color):
+    """ Draws the action curve of the robot at each node. 
+    Takes as input: the node's x,y,theta, the left & right wheel rpm, and color.
+    Returns False is the action would lead to an obstacle point or an already visted point. Returns True otherwise"""
+
     t = 0
     dt = 0.1
     Xn = Xi
     Yn = Yi
     Thetan = math.radians(Thetai)
-    UL = UL * 2 * math.pi / 60
-    UR = UR * 2 * math.pi / 60
+    UL = UL * 2 * math.pi / 60  # convert rpm to rad/s
+    UR = UR * 2 * math.pi / 60  # convert rpm to rad/s
     points = []
-    
     while t < 1:
         t = t + dt
         Xn += 0.5 * config.WHEEL_RADIUS * (UL + UR) * math.cos(Thetan) * dt
         Yn += 0.5 * config.WHEEL_RADIUS * (UL + UR) * math.sin(Thetan) * dt
         Thetan += (config.WHEEL_RADIUS / config.WHEEL_SEPARATION) * (UR - UL) * dt
-        
-        if (round(Xn), round(Yn)) in obstacles.OBSTACLE_POINTS:
-            return None
-            
+        if ((round(Xn), round(Yn)) in obstacles.OBSTACLE_POINTS) \
+            or (round(Xn)/config.THRESHOLD_X, round(Yn)/config.THRESHOLD_Y, round(Thetan)/config.THRESHOLD_THETA) in animation_visited_matrix_idx_set:
+            return False
         points.append((int(Xn), int(Yn)))
-    
-    return points
+    animation_visited_matrix_idx_set.add((round(Xn)/config.THRESHOLD_X, round(Yn)/config.THRESHOLD_Y, round(Thetan)/config.THRESHOLD_THETA))
+    pygame.draw.lines(surface, color, False, points, 1)  # Draw on the curve surface
+    return True
 
 def animate_optimal_path(window, path):
-    """Animates the optimal path with improved performance"""
-    path_surface = pygame.Surface((config.WINDOW_WIDTH, config.WINDOW_HEIGHT), pygame.SRCALPHA)
+    """Function to animate moving from start to goal using the optimal path, drawing lines between nodes."""
+    # Convert nodes to int and also to (x,y) tuples and putting them in a list to use pygame.draw.lines
     path_points = [(int(node[0]), int(node[1])) for node in path]
-    
-    # Draw all points at once
     for node in path_points:
-        pygame.draw.circle(path_surface, config.PATH_POINTS_COLOR, node, 3)
-    
-    # Draw the connecting lines
-    if len(path_points) > 1:
-        pygame.draw.lines(path_surface, config.PATH_COLOR, False, path_points, 1)
-    
-    window.blit(path_surface, (0, 0))
+        pygame.draw.circle(window, config.PATH_POINTS_COLOR, (node[0], node[1]), 3)
+        pygame.display.update()
+        pygame.time.delay(100)
+    pygame.draw.lines(window, config.PATH_COLOR, False, path_points, 1)  # Draw lines connecting each point in path
     pygame.display.update()
+    pygame.time.delay(10)  # delay as needed for animation speed
