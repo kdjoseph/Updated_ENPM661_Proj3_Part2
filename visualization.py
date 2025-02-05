@@ -37,7 +37,7 @@ def draw_environment(window):
                             config.LEFT_RECTANGLE['width'],
                             config.LEFT_RECTANGLE['height']))
     # 2nd bloated rect obstacle on left
-    pygame.draw.rect(window, config.BLOATED_OBSTACLE_COLOR, 
+    pygame.draw.rect(window, config.OBSTACLE_COLOR, 
                 pygame.Rect(config.MIDDLE_RECTANGLE['x'],
                             config.MIDDLE_RECTANGLE['y'],
                             config.MIDDLE_RECTANGLE['width'],
