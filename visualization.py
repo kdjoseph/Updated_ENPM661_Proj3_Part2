@@ -48,13 +48,23 @@ def draw_environment(window):
                     config.LEFT_CIRCLE['center']['y']),
                     config.LEFT_CIRCLE['radius'])
     pygame.display.update()
-    
-animation_visited_matrix_idx_set = set() # set to keep track of visted nodes during animation
+
+# Set used to keep track of nodes that have already been drawn    
+animation_visited_matrix_idx_set = set()
 
 def draw_action_curve(surface, Xi, Yi, Thetai, UL, UR, color):
     """ Draws the action curve of the robot at each node. 
     Takes as input: the node's x,y,theta, the left & right wheel rpm, and color.
     Returns False is the action would lead to an obstacle point or an already visted point. Returns True otherwise"""
+
+    animation_visited_matrix_idx_set.add((round(Xi)/config.THRESHOLD_X, round(Yi)/config.THRESHOLD_Y, round(Thetai)/config.THRESHOLD_THETA))
+
+    points = _calculate_curve_points(Xi, Yi, Thetai, UL, UR)
+    if points:
+        pygame.draw.lines(surface, color, False, points, 1)  # Draw on the curve surface
+        return True
+    
+def _calculate_curve_points(Xi, Yi, Thetai, UL, UR):
 
     t = 0
     dt = 0.1
@@ -63,7 +73,10 @@ def draw_action_curve(surface, Xi, Yi, Thetai, UL, UR, color):
     Thetan = math.radians(Thetai)
     UL = UL * 2 * math.pi / 60  # convert rpm to rad/s
     UR = UR * 2 * math.pi / 60  # convert rpm to rad/s
-    points = []
+
+    points = [(int(Xi), int(Yi))] # list to collect points
+
+    # while loop to calculate new points using numerical integration
     while t < 1:
         t = t + dt
         Xn += 0.5 * config.WHEEL_RADIUS * (UL + UR) * math.cos(Thetan) * dt
@@ -71,12 +84,14 @@ def draw_action_curve(surface, Xi, Yi, Thetai, UL, UR, color):
         Thetan += (config.WHEEL_RADIUS / config.WHEEL_SEPARATION) * (UR - UL) * dt
         if ((round(Xn), round(Yn)) in obstacles.OBSTACLE_POINTS) \
             or (round(Xn)/config.THRESHOLD_X, round(Yn)/config.THRESHOLD_Y, round(Thetan)/config.THRESHOLD_THETA) in animation_visited_matrix_idx_set:
-            return False
+            return None
+        # Update index and add points to array
         points.append((int(Xn), int(Yn)))
-    animation_visited_matrix_idx_set.add((round(Xn)/config.THRESHOLD_X, round(Yn)/config.THRESHOLD_Y, round(Thetan)/config.THRESHOLD_THETA))
-    pygame.draw.lines(surface, color, False, points, 1)  # Draw on the curve surface
-    return True
 
+    # Update visited matrix index set
+    animation_visited_matrix_idx_set.add((round(Xn)/config.THRESHOLD_X, round(Yn)/config.THRESHOLD_Y, round(Thetan)/config.THRESHOLD_THETA))
+    return points
+    
 def animate_optimal_path(window, path):
     """Function to animate moving from start to goal using the optimal path, drawing lines between nodes."""
     # Convert nodes to int and also to (x,y) tuples and putting them in a list to use pygame.draw.lines
