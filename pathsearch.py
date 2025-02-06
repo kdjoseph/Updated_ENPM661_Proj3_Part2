@@ -142,7 +142,7 @@ def _round_near_point5(number):
     """ rounds number to the nearest 0.5 decimal. If the number is close to 0.5, it rounds it to that, otherwise it rounds it to the closest whole number"""
     return round(number*2)/2
 
-@jit(nopython=True)
+@jit(nopython=True) # produces highly optimized machine code that doesn't rely on python compile.
 def _move(Xi,Yi,Thetai,cost_to_come,wheel_rpms):
     """ Calculates the velocity, anguar speed, distance covered and new c2c. """
     ang_spd_l, ang_spd_r = wheel_rpms
