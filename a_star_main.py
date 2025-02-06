@@ -91,6 +91,7 @@ def main():
         pygame.display.set_caption("Robot Path Animation with A* ")
         visualization.draw_environment(WINDOW)
         pygame.draw.circle(WINDOW, config.PATH_COLOR, (int(goal_x), int(goal_y)), int(round(1.5)))
+        
         nodes_list = result['visited_nodes'][:-1] # slicing to avoid drawing robot motion for the last node, since after it the goal is found
         if 0<len(nodes_list)<15000:
             nodes_per_frame = int(60000/5)
