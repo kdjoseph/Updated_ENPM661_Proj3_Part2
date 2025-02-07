@@ -1,3 +1,4 @@
+import numpy as np
 import config
 
 def is_collision(x, y):
@@ -24,14 +25,12 @@ def is_collision(x, y):
     else:               # not in obstacle space
         return False
     
-def _range_float(start, stop, step):
-    """Function to generate a range with float steps, since in-built range() function only allows interger steps"""
-    while start <= stop:
-        yield start
-        start += step
+# Make an array of all the points in the layout at 0.5 spacing.
+x_coords = np.arange(0, config.WINDOW_WIDTH, 0.5)
+y_coords = np.arange(0, config.WINDOW_HEIGHT, 0.5)
 
-# Sweep accross all points in the layout, with a 0.5 interval, then add the points that are in the obstacle space in a set.
-OBSTACLE_POINTS = {(x,y) for x in _range_float(0, config.WINDOW_WIDTH, 0.5) for y in _range_float(0, config.WINDOW_HEIGHT, 0.5) if is_collision(x,y)}
+# # Sweep accross all points in the layout, with a 0.5 interval, then add the points that are in the obstacle space in a set.
+OBSTACLE_POINTS = {(x, y) for x in x_coords for y in y_coords if is_collision(x, y)}
 # print(f'number of obstacle points {len(OBSTACLE_POINTS)} \n')   # only for debugging
     
         
