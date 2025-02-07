@@ -107,14 +107,21 @@ def main():
         if len(nodes_list) >= 60000:
             nodes_per_frame = 60000
             delay = 0
+
         # Loop to draw the action from several nodes in increments.    
         for i in range(0, len(nodes_list), nodes_per_frame):
             for node in nodes_list[i:i+nodes_per_frame]:
+                actions_drawn_count = 0
                 for action in actions:
-                    # if draw_action_curve(curve_surface, node[0], node[1], node[2], action[0], action[1], GREEN):
-                    if visualization.draw_action_curve(WINDOW, node[0], node[1], node[2], action[0], action[1], config.NODES_COLOR):
-                        pygame.display.update()
-                        pygame.time.delay(delay)  # Delay between each curve
+                    if visualization.draw_action_curve(
+                        WINDOW,
+                        node[0], node[1], node[2],
+                        action[0], action[1],
+                        config.NODES_COLOR):
+                            actions_drawn_count += 1
+                if actions_drawn_count > 0:
+                    pygame.display.update()
+                    pygame.time.delay(delay)  # Delay between each curve
                     
 
         visualization.animate_optimal_path(WINDOW, result['path'])
