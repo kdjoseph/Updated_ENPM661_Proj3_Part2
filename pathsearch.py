@@ -8,21 +8,20 @@ import time
 import config
 import obstacles
 
-def find_path(start, goal, wheel_rpm, actions, a_star_weight=1):
+def find_path(start, goal, actions, a_star_weight=1):
     """ Calculates the optimal path from a starting point to a goal point entered by the user.
     It takes the a_star weight factor, and a number to prompt or not to input the start point & left and right wheel rpm
     strt_and_rpm_input_sw = 1-> ask for start & rpm input, 0 = use defaults.
     gazebo_coord_sw =1 -> convert user input in gazebo coord to pygame. gazebo_coord_sw =0 -> convert from coord on bottom left of layout to pygame coord"""
     
     open_list = []  # to be used for heapq for nodes in the open-list
-    visited_matrix_index_set = set() #set used to store the index of each visited node if they were added to a visted-node-matrix 
+    visited_node_map = {} # key = index in layout grid, val = node round to nearest 0.5
     parent_node_map = {} # dictionary (key=node, val=parent) for all the nodes visited mapped to their parents to be used for backtracking
     lowest_cost_map ={} # dictionary (key=node, val=c2c) to keep track of the nodes and their cost, used to ensure only lowest cost in open-list
     step_info_map = {} # dictionary (key = node, val= (linear_velocity, angular_velocity, distance_covered) to keep track of the nodes, traveled distance, linear & angular velocities
 
     start_x, start_y, start_theta = start
     goal_x, goal_y = goal
-    RPM_L, RPM_R = wheel_rpm
 
     a_star_strt_time = time.time()  # used to calculate how long the code runs.
     print('starting A* search, please wait \n')
@@ -51,9 +50,11 @@ def find_path(start, goal, wheel_rpm, actions, a_star_weight=1):
         # Look to see if the node from the open_list has already been found (i.e is in the lowest_cost_map), if it's cost-to-come is > then the one previous one, then ignore it. 
         if lowest_cost_map.get((curnt_x, curnt_y, curnt_theta)) is not None and curnt_c2c > lowest_cost_map.get((curnt_x, curnt_y, curnt_theta)):
             continue
-        # rounds the x, y, theta to the nearest 0.5, then determine what its index would be if a matrix was used per page 14 of the project pdf, add it to the visited node set. 
-        visited_matrix_index_set.add((_round_near_point5(curnt_x)/config.THRESHOLD_X, _round_near_point5(curnt_y)/config.THRESHOLD_Y, curnt_theta/config.THRESHOLD_THETA))
-
+        # rounds the x, y, theta to the nearest 0.5, then determine what its index would be if a matrix was used per page 14 of the project pdf, add it to the visited node set.
+        visited_index=(round_near_point5(curnt_x)/config.THRESHOLD_X,
+                     round_near_point5(curnt_y)/config.THRESHOLD_Y,
+                     curnt_theta/config.THRESHOLD_THETA)
+        visited_node_map[visited_index]= (round_near_point5(curnt_x), round_near_point5(curnt_y), curnt_theta)
         # Check if we've reached the goal,if yes, backtrack to find path. If node is within 1.5 units of goal, then it's close enough. 
         if ((curnt_x - goal_x)**2 + (curnt_y - goal_y)**2) <= 1.5**2: #and (goal_theta-15 <= curnt_theta <= goal_theta+15):
             print(f"Goal point {(goal_x*10, (config.WINDOW_HEIGHT-goal_y)*10)} (in mm) reached!")
@@ -70,13 +71,13 @@ def find_path(start, goal, wheel_rpm, actions, a_star_weight=1):
             return {
             'path': final_path,
             'step_info': step_info,
-            'visited_nodes': list(parent_node_map.keys()),
+            'visited_nodes': list(visited_node_map.values()),
             'runtime': time.time() - a_star_strt_time,
             'success': True,
             'message': "Path found!"
                     } 
 
-        # Explore neighbors with 5 possible actions
+        # Explore neighbors with 8 possible actions
         for act in actions:
         # for nx, ny, n_theta, n_c2c in (move_0_deg(curnt_x, curnt_y, curnt_theta, curnt_c2c), move_30_deg(curnt_x, curnt_y, curnt_theta, curnt_c2c), move_60_deg(curnt_x, curnt_y, curnt_theta, curnt_c2c), move_neg30_deg(curnt_x, curnt_y, curnt_theta, curnt_c2c), move_neg60_deg(curnt_x, curnt_y, curnt_theta, curnt_c2c)):
             nx, ny, n_theta, n_c2c, n_dist, n_vel, n_theta_dot = _move(curnt_x, curnt_y, curnt_theta, curnt_c2c, act)
@@ -84,7 +85,7 @@ def find_path(start, goal, wheel_rpm, actions, a_star_weight=1):
             if (nx,ny) in obstacles.OBSTACLE_POINTS:
                 continue
             # Checks that the new node has not already been visited
-            if (_round_near_point5(nx)/config.THRESHOLD_X, _round_near_point5(ny)/config.THRESHOLD_Y, n_theta/config.THRESHOLD_THETA) not in visited_matrix_index_set:
+            if (round_near_point5(nx)/config.THRESHOLD_X, round_near_point5(ny)/config.THRESHOLD_Y, n_theta/config.THRESHOLD_THETA) not in visited_node_map:                
                 # only add node to open list and other dictionaries, if the new node is not in the lowest_cost_dictionary or if the new node's c2c is lower than the one in the lowest_cost dictionary. 
                 if (nx, ny, n_theta) not in lowest_cost_map or n_c2c < lowest_cost_map[(nx, ny, n_theta)]:
                     n_c2g = _euclidean_distance(nx, ny, goal_x, goal_y)
@@ -100,7 +101,7 @@ def find_path(start, goal, wheel_rpm, actions, a_star_weight=1):
     return {
     'path': None,
     'path_info': None,
-    'visited_nodes': list(parent_node_map.keys()),
+    'visited_nodes': list(visited_node_map.values()),
     'runtime': time.time() - a_star_strt_time,
     'success': False,
     'message': "No Path found!"
@@ -138,8 +139,10 @@ def _euclidean_distance(point1_x, point1_y, point2_x, point2_y):
     """ calculates the euclidean distance between two points.Used for c2g calculation """
     return round(math.sqrt((point2_y - point1_y)**2 + (point2_x - point1_x)**2), 2)
 
-def _round_near_point5(number):
-    """ rounds number to the nearest 0.5 decimal. If the number is close to 0.5, it rounds it to that, otherwise it rounds it to the closest whole number"""
+@njit
+def round_near_point5(number):
+    """ rounds number to the nearest 0.5 decimal. If the number is close to 0.5, it rounds it to that, 
+    otherwise it rounds it to the closest whole number"""
     return round(number*2)/2
 
 @jit(nopython=True) # produces highly optimized machine code that doesn't rely on python compile.
