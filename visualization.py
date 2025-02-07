@@ -2,6 +2,7 @@ import math
 import pygame
 import config
 import obstacles
+import pathsearch
 
 def draw_environment(window):
     """ Draws the obstacles and background. Takes the surface display as input """
@@ -57,7 +58,7 @@ def draw_action_curve(surface, Xi, Yi, Thetai, UL, UR, color):
     Takes as input: the node's x,y,theta, the left & right wheel rpm, and color.
     Returns False is the action would lead to an obstacle point or an already visted point. Returns True otherwise"""
 
-    animation_visited_matrix_idx_set.add((round(Xi)/config.THRESHOLD_X, round(Yi)/config.THRESHOLD_Y, round(Thetai)/config.THRESHOLD_THETA))
+    animation_visited_matrix_idx_set.add((pathsearch.round_near_point5(Xi)/config.THRESHOLD_X, pathsearch.round_near_point5(Yi)/config.THRESHOLD_Y, pathsearch.round_near_point5(Thetai)/config.THRESHOLD_THETA))
 
     points = _calculate_curve_points(Xi, Yi, Thetai, UL, UR)
     if points:
@@ -83,13 +84,15 @@ def _calculate_curve_points(Xi, Yi, Thetai, UL, UR):
         Yn += 0.5 * config.WHEEL_RADIUS * (UL + UR) * math.sin(Thetan) * dt
         Thetan += (config.WHEEL_RADIUS / config.WHEEL_SEPARATION) * (UR - UL) * dt
         if ((round(Xn), round(Yn)) in obstacles.OBSTACLE_POINTS) \
-            or (round(Xn)/config.THRESHOLD_X, round(Yn)/config.THRESHOLD_Y, round(Thetan)/config.THRESHOLD_THETA) in animation_visited_matrix_idx_set:
+            or (pathsearch.round_near_point5(Xn)/config.THRESHOLD_X,
+                pathsearch.round_near_point5(Yn)/config.THRESHOLD_Y, 
+                pathsearch.round_near_point5(Thetan)/config.THRESHOLD_THETA) in animation_visited_matrix_idx_set:
             return None
         # Update index and add points to array
         points.append((int(Xn), int(Yn)))
 
     # Update visited matrix index set
-    animation_visited_matrix_idx_set.add((round(Xn)/config.THRESHOLD_X, round(Yn)/config.THRESHOLD_Y, round(Thetan)/config.THRESHOLD_THETA))
+    animation_visited_matrix_idx_set.add((pathsearch.round_near_point5(Xn)/config.THRESHOLD_X, pathsearch.round_near_point5(Yn)/config.THRESHOLD_Y, pathsearch.round_near_point5(Thetan)/config.THRESHOLD_THETA))
     return points
     
 def animate_optimal_path(window, path):
