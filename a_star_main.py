@@ -17,11 +17,10 @@ def start_goal_rpm_inputs(gazebo_coord_sw=0, strt_and_rpm_input_sw=1):
                 startb_x = float(input('Enter starting point x-cordinate in mm: '))/10
                 startb_y = float(input('Enter starting point y-cordinate in mm: '))/10
                 startb_theta = float(input('Enter starting theta in degrees: '))
-                # worst case start wrt to coord at bottom-left corner: start (6,6), goal (1194, 162) or goal (1194, 338)
             except ValueError:
                 print('you did not enter a number, please enter only numbers')
                 continue
-            start_theta = startb_theta % 360
+            start_theta = startb_theta % 360 # normalize angle to 360 degrees
             if gazebo_coord_sw ==0:
                 start_x = startb_x
                 start_y = config.WINDOW_HEIGHT - startb_y # convert from coordinate wrt to lower-left corner of display to upper left-corner coordinate
@@ -29,7 +28,7 @@ def start_goal_rpm_inputs(gazebo_coord_sw=0, strt_and_rpm_input_sw=1):
                 start_x = startb_x + 500/10 # convert gazebo-x into pygame-x 
                 start_y = 1000/10 - startb_y  # convert gazebo-y into pygame-y
 
-            if (start_x, start_y) in obstacles.OBSTACLE_POINTS:
+            if obstacles.is_collision(start_x, start_y):
                 print('The chosen start point is in the obstacle space or too close to the border or out of the display dimensions, choose another one.')
             else:
                 start_pt_trigger = 0
@@ -46,7 +45,7 @@ def start_goal_rpm_inputs(gazebo_coord_sw=0, strt_and_rpm_input_sw=1):
         elif gazebo_coord_sw ==1:
             goal_x = goalb_x + 500/10 # convert gazebo-x into pygame-x
             goal_y = -goalb_y +1000/10 # convert gazebo-y into pygame-y
-        if (goal_x, goal_y) in obstacles.OBSTACLE_POINTS:
+        if obstacles.is_collision(goal_x, goal_y):
             print('The chosen goal point is in the obstacle space or too close to the border or out of the display dimensions, choose another one.')
             continue
         if (start_x,start_y) == (goal_x, goal_y):
@@ -82,7 +81,7 @@ def main():
 
     # if optimal path is found, create animation
     if result['message'] == "Path found!":
-        animation_strt_time = time.time()
+        animation_start_time = time.time()
 
         # Create Pygame window
         pygame.init()
@@ -111,22 +110,22 @@ def main():
         # Loop to draw the action from several nodes in increments.    
         for i in range(0, len(nodes_list), nodes_per_frame):
             for node in nodes_list[i:i+nodes_per_frame]:
-                actions_drawn_count = 0
+                action_curve_drawn_count = 0
+
                 for action in actions:
                     if visualization.draw_action_curve(
                         WINDOW,
                         node[0], node[1], node[2],
                         action[0], action[1],
                         config.NODES_COLOR):
-                            actions_drawn_count += 1
-                if actions_drawn_count > 0:
+                        action_curve_drawn_count += 1
+                        
+                if action_curve_drawn_count > 0:
                     pygame.display.update()
-                    pygame.time.delay(delay)  # Delay between each curve
-                    
-
+                    pygame.time.delay(delay)  # Delay between each action curve set
+         
         visualization.animate_optimal_path(WINDOW, result['path'])
-        animation_end_time = time.time()
-        animation_run_time = animation_end_time - animation_strt_time
+        animation_run_time = time.time() - animation_start_time
         print(f"Animation Execution Time: {animation_run_time} seconds, \n")
         print(f"Total execution time of search algorithm & animation {result['runtime']+animation_run_time} seconds")
         
