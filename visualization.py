@@ -58,7 +58,7 @@ def draw_action_curve(surface, Xi, Yi, Thetai, UL, UR, color):
     Takes as input: the node's x,y,theta, the left & right wheel rpm, and color.
     Returns False is the action would lead to an obstacle point or an already visted point. Returns True otherwise"""
 
-    animation_visited_matrix_idx_set.add((pathsearch.round_near_point5(Xi)/config.THRESHOLD_X, pathsearch.round_near_point5(Yi)/config.THRESHOLD_Y, pathsearch.round_near_point5(Thetai)/config.THRESHOLD_THETA))
+    animation_visited_matrix_idx_set.add((pathsearch.calculate_grid_index(Xi, Yi, Thetai%360)))
 
     points = _calculate_curve_points(Xi, Yi, Thetai, UL, UR)
     if points:
@@ -83,16 +83,20 @@ def _calculate_curve_points(Xi, Yi, Thetai, UL, UR):
         Xn += 0.5 * config.WHEEL_RADIUS * (UL + UR) * math.cos(Thetan) * dt
         Yn += 0.5 * config.WHEEL_RADIUS * (UL + UR) * math.sin(Thetan) * dt
         Thetan += (config.WHEEL_RADIUS / config.WHEEL_SEPARATION) * (UR - UL) * dt
-        if ((round(Xn), round(Yn)) in obstacles.OBSTACLE_POINTS) \
-            or (pathsearch.round_near_point5(Xn)/config.THRESHOLD_X,
-                pathsearch.round_near_point5(Yn)/config.THRESHOLD_Y, 
-                pathsearch.round_near_point5(Thetan)/config.THRESHOLD_THETA) in animation_visited_matrix_idx_set:
+        Xn_rounded_pt5 = pathsearch.round_near_point5(Xn)
+        Yn_rounded_pt5 = pathsearch.round_near_point5(Yn)
+        if (Xn_rounded_pt5, Yn_rounded_pt5) in obstacles.OBSTACLE_POINTS \
+            or pathsearch.calculate_grid_index(Xn_rounded_pt5,
+                                               Yn_rounded_pt5,
+                                               math.degrees(Thetan)%360) in animation_visited_matrix_idx_set:
             return None
         # Update index and add points to array
         points.append((int(Xn), int(Yn)))
 
     # Update visited matrix index set
-    animation_visited_matrix_idx_set.add((pathsearch.round_near_point5(Xn)/config.THRESHOLD_X, pathsearch.round_near_point5(Yn)/config.THRESHOLD_Y, pathsearch.round_near_point5(Thetan)/config.THRESHOLD_THETA))
+    animation_visited_matrix_idx_set.add(pathsearch.calculate_grid_index(Xn_rounded_pt5,
+                                                                         Yn_rounded_pt5,
+                                                                         math.degrees(Thetan)%360))
     return points
     
 def animate_optimal_path(window, path):
@@ -102,7 +106,7 @@ def animate_optimal_path(window, path):
     for node in path_points:
         pygame.draw.circle(window, config.PATH_POINTS_COLOR, (node[0], node[1]), 3)
         pygame.display.update()
-        pygame.time.delay(100)
+        pygame.time.delay(50)
     pygame.draw.lines(window, config.PATH_COLOR, False, path_points, 1)  # Draw lines connecting each point in path
     pygame.display.update()
-    pygame.time.delay(10)  # delay as needed for animation speed
+
