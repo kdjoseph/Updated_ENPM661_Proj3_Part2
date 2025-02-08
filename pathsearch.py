@@ -51,10 +51,11 @@ def find_path(start, goal, actions, a_star_weight=1):
         if lowest_cost_map.get((curnt_x, curnt_y, curnt_theta)) is not None and curnt_c2c > lowest_cost_map.get((curnt_x, curnt_y, curnt_theta)):
             continue
         # rounds the x, y, theta to the nearest 0.5, then determine what its index would be if a matrix was used per page 14 of the project pdf, add it to the visited node set.
-        visited_index=(round_near_point5(curnt_x)/config.THRESHOLD_X,
-                     round_near_point5(curnt_y)/config.THRESHOLD_Y,
-                     curnt_theta/config.THRESHOLD_THETA)
-        visited_node_map[visited_index]= (round_near_point5(curnt_x), round_near_point5(curnt_y), curnt_theta)
+        # visited_index=(round(curnt_x/config.THRESHOLD_X),
+        #              round(curnt_y/config.THRESHOLD_Y),
+        #              round(curnt_theta/config.THRESHOLD_THETA))
+        visited_index = calculate_grid_index(curnt_x, curnt_y, curnt_theta)
+        visited_node_map[visited_index]= (curnt_x, curnt_y, curnt_theta)
         # Check if we've reached the goal,if yes, backtrack to find path. If node is within 1.5 units of goal, then it's close enough. 
         if ((curnt_x - goal_x)**2 + (curnt_y - goal_y)**2) <= 1.5**2: #and (goal_theta-15 <= curnt_theta <= goal_theta+15):
             print(f"Goal point {(goal_x*10, (config.WINDOW_HEIGHT-goal_y)*10)} (in mm) reached!")
@@ -85,7 +86,8 @@ def find_path(start, goal, actions, a_star_weight=1):
             if (nx,ny) in obstacles.OBSTACLE_POINTS:
                 continue
             # Checks that the new node has not already been visited
-            if (round_near_point5(nx)/config.THRESHOLD_X, round_near_point5(ny)/config.THRESHOLD_Y, n_theta/config.THRESHOLD_THETA) not in visited_node_map:                
+            # if (round(nx/config.THRESHOLD_X), round(ny/config.THRESHOLD_Y), round(n_theta/config.THRESHOLD_THETA)) not in visited_node_map:
+            if calculate_grid_index(nx, ny, n_theta) not in visited_node_map:          
                 # only add node to open list and other dictionaries, if the new node is not in the lowest_cost_dictionary or if the new node's c2c is lower than the one in the lowest_cost dictionary. 
                 if (nx, ny, n_theta) not in lowest_cost_map or n_c2c < lowest_cost_map[(nx, ny, n_theta)]:
                     n_c2g = _euclidean_distance(nx, ny, goal_x, goal_y)
@@ -131,9 +133,13 @@ def _reconstruct_path(parent_map: dict, step_info_map: dict, current: Tuple) -> 
     return path, step_info
 
 @njit
-def _normalize_angle(angle):
-    """ normalizes all angles to be with respect to 360 degrees"""
-    return angle % 360
+def calculate_grid_index(x, y, theta):
+    """ calculates the grid index closest to the point """
+
+    x = round(x / config.THRESHOLD_X)
+    y = round(y / config.THRESHOLD_Y)
+    theta = round(theta / config.THRESHOLD_THETA)
+    return x, y, theta
 
 def _euclidean_distance(point1_x, point1_y, point2_x, point2_y):
     """ calculates the euclidean distance between two points.Used for c2g calculation """
@@ -171,5 +177,6 @@ def _move(Xi,Yi,Thetai,cost_to_come,wheel_rpms):
         distance += np.sqrt((0.5*config.WHEEL_RADIUS * (ang_spd_l + ang_spd_r) * np.cos(Thetan) * dt)**2 \
                       + (0.5*config.WHEEL_RADIUS * (ang_spd_l + ang_spd_r) * np.sin(Thetan) * dt)**2)
     new_c2c = cost_to_come + distance  
-    Thetan = np.degrees(Thetan)
-    return round(Xn), round(Yn), round(_normalize_angle(Thetan)), round(new_c2c,1), round(distance,2), round(vel,4), round(theta_dot,4)
+    Thetan = np.degrees(Thetan) % 360 # convert to degrees then noormalize to 360 deg
+
+    return round_near_point5(Xn), round_near_point5(Yn), Thetan, round(new_c2c,1), round(distance,2), round(vel,4), round(theta_dot,4)
