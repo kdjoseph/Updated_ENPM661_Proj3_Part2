@@ -7,7 +7,7 @@ GAZEBO_START_X = 500/10 # 500 mm converted to cm
 CLEARANCE = 29/10 # 100 mm converted to cm = 10 cm
 BLOAT = ROBOT_RADIUS + CLEARANCE
 
-THRESHOLD_X, THRESHOLD_Y, THRESHOLD_THETA = 0.5, 0.5, 30
+THRESHOLD_X, THRESHOLD_Y, THRESHOLD_THETA = 0.5, 0.5, 30 # cm, cm, degrees
 
 LEFT_RECTANGLE = {'height': 1000/10,
                   'width': 250/10,
