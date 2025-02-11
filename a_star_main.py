@@ -8,6 +8,10 @@ import pathsearch
 import visualization
 
 def start_goal_rpm_inputs(gazebo_coord_sw=0, strt_and_rpm_input_sw=1):
+    """Ask the user for the start and goal point, and for the left and right wheel RPM.
+    An optional gazebo_coord_sw allows for the start and goal points to be converted to the
+    coordinates of the gazebo world, for future ros2 gazebo implementation
+    """
     start_pt_trigger = 1
     goal_pt_trigger =1
     wheel_rpm_trigger =1
@@ -110,7 +114,7 @@ def main():
             nodes_per_frame = 60000
             delay = 0
 
-        # Loop to draw the action from several nodes in increments.    
+        # Loop to draw the action curves from several nodes in increments.    
         for i in range(0, len(nodes_list), nodes_per_frame):
             for node in nodes_list[i:i+nodes_per_frame]:
                 action_curve_drawn_count = 0
