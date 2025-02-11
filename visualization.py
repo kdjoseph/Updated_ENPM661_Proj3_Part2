@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+""" Module to create an animation recreating the A_star search process"""
+
 import math
 import pygame
 import config
@@ -8,7 +11,7 @@ def draw_environment(window):
     """ Draws the obstacles and background. Takes the surface display as input """
     window.fill(config.BACKGROUND_COLOR)
     #bloat around rectangular obstacles. pygame.draw.rect(surface, colour, rectangleObject)
-    # Draw first blaoted rectangle
+    # Draw first bloated rectangle
     pygame.draw.rect(window, config.BLOATED_OBSTACLE_COLOR, 
                 pygame.Rect(config.LEFT_RECTANGLE['bloated']['x'],
                             config.LEFT_RECTANGLE['bloated']['y'],
@@ -20,7 +23,7 @@ def draw_environment(window):
                             config.MIDDLE_RECTANGLE['bloated']['y'],
                             config.MIDDLE_RECTANGLE['bloated']['width'],
                             config.MIDDLE_RECTANGLE['bloated']['height']))
-    # Draw Bloated Border
+    # Draw Bloated Borders
     for rect in config.BLOATED_BORDERS.values():
         pygame.draw.rect(window, config.BLOATED_OBSTACLE_COLOR,
                          pygame.Rect(rect['x'], rect['y'], rect['width'], rect['height']))
@@ -32,6 +35,7 @@ def draw_environment(window):
                         config.LEFT_CIRCLE['bloated_radius'])
 
     # Actual obstacles
+    # First rectangle on the left.
     pygame.draw.rect(window, config.OBSTACLE_COLOR, 
                 pygame.Rect(config.LEFT_RECTANGLE['x'],
                             config.LEFT_RECTANGLE['y'],
@@ -61,11 +65,15 @@ def draw_action_curve(surface, Xi, Yi, Thetai, UL, UR, color):
     animation_visited_matrix_idx_set.add((pathsearch.calculate_grid_index(Xi, Yi, Thetai%360)))
 
     points = _calculate_curve_points(Xi, Yi, Thetai, UL, UR)
-    if points:
+    if points is not None:
         pygame.draw.lines(surface, color, False, points, 1)  # Draw on the curve surface
         return True
+    return False
     
 def _calculate_curve_points(Xi, Yi, Thetai, UL, UR):
+    """ Calculates the points along the curved motion of the robot.
+    Returns None if any of the points are in the obstacle space or
+    have already been visited """
 
     t = 0
     dt = 0.1
@@ -74,8 +82,8 @@ def _calculate_curve_points(Xi, Yi, Thetai, UL, UR):
     Thetan = math.radians(Thetai)
     UL = UL * 2 * math.pi / 60  # convert rpm to rad/s
     UR = UR * 2 * math.pi / 60  # convert rpm to rad/s
-
-    points = [(int(Xi), int(Yi))] # list to collect points
+    # list to collect points. (Values convert to int b/c Pygame only works with int)
+    points = [(int(Xi), int(Yi))] 
 
     # while loop to calculate new points using numerical integration
     while t < 1:
@@ -85,18 +93,18 @@ def _calculate_curve_points(Xi, Yi, Thetai, UL, UR):
         Thetan += (config.WHEEL_RADIUS / config.WHEEL_SEPARATION) * (UR - UL) * dt
         Xn_rounded_pt5 = pathsearch.round_near_point5(Xn)
         Yn_rounded_pt5 = pathsearch.round_near_point5(Yn)
-        if (Xn_rounded_pt5, Yn_rounded_pt5) in obstacles.OBSTACLE_POINTS \
-            or pathsearch.calculate_grid_index(Xn_rounded_pt5,
-                                               Yn_rounded_pt5,
-                                               math.degrees(Thetan)%360) in animation_visited_matrix_idx_set:
+
+        x_idx, y_idx, theta_idx = pathsearch.calculate_grid_index(Xn_rounded_pt5, Yn_rounded_pt5,
+                                                                  math.degrees(Thetan)%360)
+        if (Xn_rounded_pt5, Yn_rounded_pt5) in obstacles.OBSTACLE_POINTS\
+            or (x_idx, y_idx, theta_idx) in animation_visited_matrix_idx_set:
             return None
-        # Update index and add points to array
+        # add points to point list
         points.append((int(Xn), int(Yn)))
 
     # Update visited matrix index set
-    animation_visited_matrix_idx_set.add(pathsearch.calculate_grid_index(Xn_rounded_pt5,
-                                                                         Yn_rounded_pt5,
-                                                                         math.degrees(Thetan)%360))
+    animation_visited_matrix_idx_set.add((x_idx, y_idx, theta_idx))
+    
     return points
     
 def animate_optimal_path(window, path):
