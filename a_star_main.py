@@ -20,7 +20,8 @@ def start_goal_rpm_inputs(gazebo_coord_sw=0, strt_and_rpm_input_sw=1):
             try:
                 startb_x = float(input('Enter starting point x-cordinate in mm: '))/10
                 startb_y = float(input('Enter starting point y-cordinate in mm: '))/10
-                start_theta = float(input('Enter starting theta in degrees: '))%360
+                # Ask user for orientation in degrees, than normalize angle to 360 deg
+                start_theta = float(input('Enter starting orientation angle in degrees: '))%360
             except ValueError:
                 print('you did not enter a number, please enter only numbers')
                 continue
@@ -62,13 +63,13 @@ def start_goal_rpm_inputs(gazebo_coord_sw=0, strt_and_rpm_input_sw=1):
     if strt_and_rpm_input_sw ==1:
         while wheel_rpm_trigger == 1:
             try:
-                RPM_L = float(input('Enter an rpm less than 76 for the left-wheel: '))
-                RPM_R = float(input('Enter an rpm less than 76 for the right-wheel: '))
+                RPM_L = float(input(f'Enter an rpm less than {config.MAX_WHEEL_RPM+1} for the left-wheel: '))
+                RPM_R = float(input(f'Enter an rpm less than {config.MAX_WHEEL_RPM+1} for the right-wheel: '))
             except ValueError:
                 print('you did not enter a number, please enter only numbers')
                 continue
-            if (RPM_L <0 or RPM_L >75) or (RPM_R <0 or RPM_R >75):
-                print('The value you entered is outside the acceptable range (0 to 75), try again')
+            if (RPM_L <0 or RPM_L >config.MAX_WHEEL_RPM) or (RPM_R <0 or RPM_R >config.MAX_WHEEL_RPM):
+                print(f'The value you entered is outside the acceptable range (0 to {config.MAX_WHEEL_RPM}), try again')
                 continue
             wheel_rpm_trigger = 0
     return (start_x, start_y, start_theta), (goal_x, goal_y), (RPM_L, RPM_R)
