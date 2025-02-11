@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """ Main module to get user inputs then start the search and animation. """
 
-import pygame, sys, math, time
-import heapq as hq
-from collections import deque
+import sys
+import time
+import pygame
 import config
 import obstacles
 import pathsearch
@@ -11,8 +11,9 @@ import visualization
 
 def start_goal_rpm_inputs(gazebo_coord_sw=0, strt_and_rpm_input_sw=1):
     """Ask the user for the start and goal point, and for the left and right wheel RPM.
-    An optional gazebo_coord_sw allows for the start and goal points to be converted to the
-    coordinates of the gazebo world, for future ros2 gazebo implementation
+    strt_and_rpm_input_sw = 1-> ask for start & rpm input, 0 = use defaults.
+    gazebo_coord_sw =1 -> convert user input in gazebo coord to pygame.(used for future ros2 gazebo implementation)
+    gazebo_coord_sw =0 -> convert from coord on bottom left of layout to pygame coord
     """
     start_pt_trigger = 1
     goal_pt_trigger =1
@@ -39,6 +40,8 @@ def start_goal_rpm_inputs(gazebo_coord_sw=0, strt_and_rpm_input_sw=1):
                 print('The chosen start point is in the obstacle space or too close to the border or out of the display dimensions, choose another one.')
             else:
                 start_pt_trigger = 0
+    else: # default suggested by assignment pdf mostly for gazebo implementaton.
+        start_x, start_y = config.GAZEBO_START_X, 1000/10 
 
     while goal_pt_trigger == 1:
         try:
@@ -74,6 +77,8 @@ def start_goal_rpm_inputs(gazebo_coord_sw=0, strt_and_rpm_input_sw=1):
                 print(f'The value you entered is outside the acceptable range (0 to {config.MAX_WHEEL_RPM}), try again')
                 continue
             wheel_rpm_trigger = 0
+    else:
+        RPM_L, RPM_R = 22, 22 # defaults, mostly used in Gazebo implementation of code.
     return (start_x, start_y, start_theta), (goal_x, goal_y), (RPM_L, RPM_R)
 
 def main():
@@ -87,7 +92,7 @@ def main():
     # a_star_duration = A_star(1, 1, 0)
     result = pathsearch.find_path(start, goal, actions)
 
-    print(f"A* Algorithm Execution Time: {result['runtime']:.2f} seconds")
+    print(f"\nA* Algorithm Execution Time: {result['runtime']:.2f} seconds")
 
     # if optimal path is found, create animation
     if result['message'] == "Path found!":
@@ -137,8 +142,8 @@ def main():
          
         visualization.animate_optimal_path(WINDOW, result['path'])
         animation_run_time = time.time() - animation_start_time
-        print(f"\nAnimation Execution Time: {animation_run_time:.2f} seconds.")
-        print(f"Total execution time of search algorithm & animation {result['runtime']+animation_run_time} seconds")
+        print(f"Animation Execution Time: {animation_run_time:.2f} seconds.")
+        print(f"Total execution time of search algorithm & animation {result['runtime']+animation_run_time:.2f} seconds")
         
         clock = pygame.time.Clock()
         while True:  # main loop to control animation & close window
