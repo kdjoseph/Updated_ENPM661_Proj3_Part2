@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+""" Main module to get user inputs then start the search and animation. """
+
 import pygame, sys, math, time
 import heapq as hq
 from collections import deque
