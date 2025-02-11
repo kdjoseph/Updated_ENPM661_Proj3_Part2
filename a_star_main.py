@@ -16,14 +16,14 @@ def start_goal_rpm_inputs(gazebo_coord_sw=0, strt_and_rpm_input_sw=1):
             try:
                 startb_x = float(input('Enter starting point x-cordinate in mm: '))/10
                 startb_y = float(input('Enter starting point y-cordinate in mm: '))/10
-                startb_theta = float(input('Enter starting theta in degrees: '))
+                start_theta = float(input('Enter starting theta in degrees: '))%360
             except ValueError:
                 print('you did not enter a number, please enter only numbers')
                 continue
-            start_theta = startb_theta % 360 # normalize angle to 360 degrees
             if gazebo_coord_sw ==0:
                 start_x = startb_x
-                start_y = config.WINDOW_HEIGHT - startb_y # convert from coordinate wrt to lower-left corner of display to upper left-corner coordinate
+                # convert from coordinate w.r.t lower-left corner of display to upper left-corner coordinate
+                start_y = config.WINDOW_HEIGHT - startb_y 
             elif gazebo_coord_sw ==1: 
                 start_x = startb_x + 500/10 # convert gazebo-x into pygame-x 
                 start_y = 1000/10 - startb_y  # convert gazebo-y into pygame-y
@@ -35,13 +35,15 @@ def start_goal_rpm_inputs(gazebo_coord_sw=0, strt_and_rpm_input_sw=1):
 
     while goal_pt_trigger == 1:
         try:
-            goalb_x, goalb_y = float(input('Enter goal point x- cordinate in mm: '))/10, float(input('Enter goal point y-cordinate in mm: '))/10
+            goalb_x = float(input('Enter goal point x- cordinate in mm: '))/10
+            goalb_y = float(input('Enter goal point y-cordinate in mm: '))/10
         except ValueError:
             print('you did not enter a number, please enter only numbers')
             continue
         if gazebo_coord_sw == 0:
             goal_x = goalb_x
-            goal_y = config.WINDOW_HEIGHT - goalb_y  # convert from coordinate wrt to lower-left corner of display to upper left-corner coordinate
+            # convert from coordinate wrt to lower-left corner of display to upper left-corner coordinate
+            goal_y = config.WINDOW_HEIGHT - goalb_y  
         elif gazebo_coord_sw ==1:
             goal_x = goalb_x + 500/10 # convert gazebo-x into pygame-x
             goal_y = -goalb_y +1000/10 # convert gazebo-y into pygame-y
@@ -56,7 +58,8 @@ def start_goal_rpm_inputs(gazebo_coord_sw=0, strt_and_rpm_input_sw=1):
     if strt_and_rpm_input_sw ==1:
         while wheel_rpm_trigger == 1:
             try:
-                RPM_L, RPM_R = float(input('Enter an rpm less than 76 for the left-wheel: ')), float(input('Enter an rpm less than 76 for the right-wheel: '))
+                RPM_L = float(input('Enter an rpm less than 76 for the left-wheel: '))
+                RPM_R = float(input('Enter an rpm less than 76 for the right-wheel: '))
             except ValueError:
                 print('you did not enter a number, please enter only numbers')
                 continue
@@ -72,12 +75,12 @@ def main():
     goal_x, goal_y = goal
     RPM_L, RPM_R = wheel_rpm
     actions = ((0,RPM_L), (RPM_L,0), (RPM_L,RPM_L), (0,RPM_R),\
-            (RPM_R,0), (RPM_R,RPM_R), (RPM_L,RPM_R), (RPM_R,RPM_L))
+            (RPM_R,0), (RPM_R,RPM_R), (RPM_L,RPM_R), (RPM_R,RPM_L)) # tuple of 8 posible actions
     
     # a_star_duration = A_star(1, 1, 0)
     result = pathsearch.find_path(start, goal, actions)
 
-    print(f"A* Algorithm Execution Time: {result['runtime']} seconds")
+    print(f"A* Algorithm Execution Time: {result['runtime']:.2f} seconds")
 
     # if optimal path is found, create animation
     if result['message'] == "Path found!":
@@ -89,8 +92,8 @@ def main():
         pygame.display.set_caption("Robot Path Animation with A* ")
         visualization.draw_environment(WINDOW)
         pygame.draw.circle(WINDOW, config.PATH_COLOR, (int(goal_x), int(goal_y)), int(round(1.5)))
-        
-        nodes_list = result['visited_nodes'][:-1] # slicing to avoid drawing robot motion for the last node, since after it the goal is found
+        nodes_list = result['visited_nodes']
+        #set delay between each frame based on # of nodes to be drawn
         if 0<len(nodes_list)<15000:
             nodes_per_frame = int(60000/5)
             delay = 2
@@ -117,20 +120,21 @@ def main():
                         WINDOW,
                         node[0], node[1], node[2],
                         action[0], action[1],
-                        config.NODES_COLOR):
+                        config.NODES_COLOR) is True:
+
                         action_curve_drawn_count += 1
-                        
+                # Only update display after drawing the set of 8 actions has been attempted
                 if action_curve_drawn_count > 0:
                     pygame.display.update()
                     pygame.time.delay(delay)  # Delay between each action curve set
          
         visualization.animate_optimal_path(WINDOW, result['path'])
         animation_run_time = time.time() - animation_start_time
-        print(f"Animation Execution Time: {animation_run_time} seconds, \n")
+        print(f"\nAnimation Execution Time: {animation_run_time:.2f} seconds.")
         print(f"Total execution time of search algorithm & animation {result['runtime']+animation_run_time} seconds")
         
         clock = pygame.time.Clock()
-        while True:
+        while True:  # main loop to control animation & close window
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
