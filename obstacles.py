@@ -8,7 +8,7 @@ def is_collision(x, y):
     """ Checks if a point is in the obstacle space. 
     Returns True if the point is in the obstacle space, and False if it is not"""
 
-    # Border region outside all obstacles
+    # Bloat around border walls
     if (x <=config.BLOAT or x >= (config.WINDOW_WIDTH-config.BLOAT)) or (y <=config.BLOAT or y >= (config.WINDOW_HEIGHT-config.BLOAT)):
         return True
     
