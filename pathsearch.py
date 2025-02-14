@@ -132,7 +132,7 @@ def _reconstruct_path(parent_map: dict, step_info_map: dict, current: Tuple) -> 
         step_info.appendleft(step_info_map[current])
     return path, step_info
 
-@njit
+@njit(fastmath=True) # same as @jit(nopython=True, fastmath=True)
 def calculate_grid_index(x, y, theta):
     """ calculates the grid index closest to the point """
 
@@ -145,13 +145,13 @@ def _euclidean_distance(point1_x, point1_y, point2_x, point2_y):
     """ calculates the euclidean distance between two points.Used for c2g calculation """
     return round(math.sqrt((point2_y - point1_y)**2 + (point2_x - point1_x)**2), 2)
 
-@njit # same as @jit(nopython=True)
+@njit 
 def round_near_point5(number):
     """ rounds number to the nearest 0.5 decimal. If the number is close to 0.5, it rounds it to that, 
     otherwise it rounds it to the closest whole number"""
     return round(number*2)/2
     
-@jit(nopython=True) # produces highly optimized machine code that doesn't rely on python compile.
+@jit(nopython=True, fastmath=True) # produces highly optimized machine code that doesn't rely on python compile.
 def _move(Xi,Yi,Thetai,cost_to_come,wheel_rpms):
     """ Calculates the velocity, anguar speed, distance covered and new c2c.
      Using Euler numerical integration method. """
